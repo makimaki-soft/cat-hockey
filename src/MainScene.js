@@ -1,0 +1,283 @@
+var MainLayer = cc.LayerColor.extend({
+    sprite:null,
+    ctor:function () {
+        this._super(cc.color(200,200, 50,100));
+        var self = this;
+        var size = cc.winSize;
+        
+        // show my peerID.
+        var peerID_txt = new cc.LabelTTF(msg.showPeerID+rtc_manager.getmyid(), "Arial", 38);
+        peerID_txt.x = size.width / 2;
+        peerID_txt.y = size.height / 2 + 200;
+        this.addChild(peerID_txt, 5);
+        
+        // show puck.
+        var puck = new cc.Sprite( res.Puck );
+     
+        var pucksize = { width : 40 ,
+                        height : 40,
+                        r : 20 };
+        
+        puck.attr({
+            x: size.width / 2,
+            y: size.height / 2,
+            scaleX : pucksize.width/puck.width,
+            scaleY : pucksize.height/puck.height,
+            speed : {x : 20, y :20 },
+            anchorX : 0.5,
+            anchorY : 0.5,
+            r : pucksize.r
+        });
+        this.addChild(puck, 1);
+        this.puck = puck;
+        
+        // show my mallet.
+        var mallet = new cc.Sprite( res.Mallet );
+        mallet.attr({
+            x: global.isHost ? size.width * 2 / 6 : size.width * 4 / 6,
+            y: size.height / 2,
+            scaleX : 100/mallet.width,
+            scaleY : 100/mallet.height,
+            anchorX : 0.5,
+            anchorY : 0.5,
+            r : 50
+        });
+        this.addChild(mallet, 1);
+        this.mallet = mallet;
+        
+        // show enemy mallet.
+        var enemyMallet = new cc.Sprite( res.Mallet );
+        enemyMallet.attr({
+            x: global.isHost ? size.width * 4 / 6 : size.width * 2 / 6,
+            y: size.height / 2,
+            scaleX : 100/enemyMallet.width,
+            scaleY : 100/enemyMallet.height,
+            anchorX : 0.5,
+            anchorY : 0.5,
+            r : 50
+        });
+        this.addChild(enemyMallet, 1);
+        this.enemyMallet = enemyMallet;
+        
+        // start processig received rtc data.
+        rtc_manager.setReceiveAction(this.rtcReceivedAction);
+        
+        // start frame processig.
+        this.scheduleUpdate();
+    },
+    
+    /**
+     * move my mallet.
+     * @param {cc.Point}
+     */
+    moveMyMallet : function(location){
+        this.mallet.attr({
+            x: location.x,
+            y: location.y
+        });
+    },
+    
+    /**
+     * move enemy's mallet.
+     * @param {cc.Point}
+     */
+    moveEnemyMallet : function(location){
+        this.enemyMallet.attr({
+            x: location.x,
+            y: location.y
+        });
+    },
+    
+    /**
+     * Collision detecion with window.
+     *  update position and speed.
+     * @param {cc.Sprite}
+     */
+    detectCollisionWindow : function(puck){
+        
+        var winSize = cc.winSize;
+        var r = puck.r;
+        
+        if( puck.y + r > winSize.height ){
+            // top
+            puck.speed.y = - puck.speed.y;
+            puck.y = winSize.height - r;
+        }else if( puck.y - r < 0 ){
+            // bottom
+            puck.speed.y = -puck.speed.y;
+            puck.y = r;
+        }
+        
+        if( puck.x + r > winSize.width ){
+            // right
+            puck.speed.x = -puck.speed.x;
+            puck.x = winSize.width - r;
+        }else if( puck.x - r < 0 ){
+            // left
+            puck.speed.x = -puck.speed.x;
+            puck.x = r;
+        }
+    },
+    
+    /**
+     * Collision detecion with mallet.
+     *  update position and speed.
+     * @param {cc.Sprite, cc.Sprite}
+     */
+    detectCollisionMallet : function(puck, mallet){
+        
+        var distance = cc.pDistance(puck.getPosition(), mallet.getPosition());
+        var dist = puck.r + mallet.r;
+        
+        if( distance > dist ){
+            return;
+        }
+        
+        // pack and mallet mustn't be overlap.
+        var dX = puck.getPosition().x - mallet.getPosition().x;
+        var dY = puck.getPosition().y - mallet.getPosition().y;
+        puck.setPosition( mallet.x + dist * dX / distance, mallet.y + dist * dY / distance);
+        
+        // update speed vector.
+        dX = puck.getPosition().x - mallet.getPosition().x;
+        dY = puck.getPosition().y - mallet.getPosition().y;
+        
+        // rotate vector with Affine Transform.
+        var vX = ( puck.speed.x *  1 * dX + puck.speed.y * dY )/dist;
+        var vY = ( puck.speed.x * -1 * dY + puck.speed.y * dX )/dist ;
+        
+        // reflect
+        vX = -vX;
+        
+        // Inverse Affine Transform.
+        puck.speed.x = ( vX * dX - vY * dY ) / (dist);
+        puck.speed.y = ( vX * dY + vY * dX ) / (dist);
+    },
+    
+    /**
+     * updatePack.
+     *  Collision detection.
+     *   - to window.
+     *   - to mallets.
+     */
+    updatePuck : function(dt){
+        
+        var puck = this.puck;
+        var mallet = this.mallet;
+        var enemymallet = this.enemyMallet;
+        
+        // update position normally.
+        puck.x += puck.speed.x;
+        puck.y += puck.speed.y;
+        
+        // update property of puck.
+        this.detectCollisionWindow(puck);
+        // The order is not a problem in the situation two mallets never overlap.
+        this.detectCollisionMallet(puck, mallet);
+        this.detectCollisionMallet(puck, enemymallet);
+    },
+    
+    /**
+     * processing per frame.
+     */
+    update : function(dt){
+         
+        // determine the sync-target frame count.
+        var synCnt = global.frameCnt - global.delay;
+        
+        if(synCnt < 0){
+            // delay分は無視　todo:予めマイナスのフレームデータを入れておくという手もある。その場合はこのif文は不要。
+            global.frameCnt++;
+            return;
+        }
+        
+        // check the available data.
+        global.deleteOldData(synCnt);
+        if( global.frameInfo.length == 0 || global.enemyInfo.length == 0 ){
+            cc.log("FrameInfo empty.");
+            return;
+        }
+        
+        // get current my data.
+        var data = global.getData(global.frameInfo, synCnt);
+        if( data === undefined ){
+            cc.log("MyData Sync lost.");
+            return;
+        }
+        
+        // get current enemy data.
+        var enemyData = global.getData(global.enemyInfo, synCnt);
+        if( enemyData === undefined ){
+            cc.log("EnemyData Sync lost.");
+            return;
+        }
+        
+        // found pair of sync frames.
+        cc.log("Sync ", synCnt, "MyCnt ", data.frameCnt, "EnemyCnt ", enemyData.frameCnt);
+        
+        // adjust my mallet position.
+        this.moveMyMallet( cc.p(  data.malltLoc.x,
+                                  data.malltLoc.y ));
+                                
+        // adjust enemy's mallet position.
+        this.moveEnemyMallet( cc.p(  enemyData.malltLoc.x,
+                                     enemyData.malltLoc.y ));
+        
+        // determine the puck postision.       
+        this.updatePuck(dt);
+        
+        // frame update success.
+        global.frameCnt++;
+    },
+    
+    /**
+     * 
+     */
+    rtcReceivedAction : function(peerID, data){
+        // decode JSON and add to info array.
+        global.enemyInfo.push(JSON.parse(data));
+    }
+});
+
+var WaitLayer = cc.LayerColor.extend({
+    sprite:null,
+    ctor:function () {
+        this._super(cc.color(200,200, 50,100));
+        var size = cc.winSize;
+        
+        // massage.
+        var massage = new cc.LabelTTF( msg.waitConnect, "Arial", 38);
+        massage.x = size.width / 2;
+        massage.y = size.height / 2 + 200;
+        this.addChild(massage, 0);
+    }
+});
+
+var MainScene = cc.Scene.extend({
+    onEnter:function () {
+        this._super();
+        var self = this;
+        
+        var waitLayer = new WaitLayer();
+        this.addChild(waitLayer   ,0);
+        
+        var startGame = function(){
+            cc.log("Start game");
+            var virtualLayer = new VirtualLayer();
+            var mainLayer    = new MainLayer();
+            self.removeChild(waitLayer);
+            self.addChild(mainLayer   ,0);
+            self.addChild(virtualLayer,1);
+        };
+        
+       if( global.isHost ){
+           rtc_manager.setConnectAction(function(){
+               startGame();
+           });
+       }else{
+           rtc_manager.connecting(global.hostPeerID, function(){
+               startGame();
+           });
+       }
+    }
+});

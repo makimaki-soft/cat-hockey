@@ -1,3 +1,4 @@
+var global = new mkmk.FrameByFrameSyncManager();
 var EnterLayer = cc.LayerColor.extend({
     sprite:null,
     ctor:function () {

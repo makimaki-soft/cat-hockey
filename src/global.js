@@ -1,10 +1,15 @@
-var global = {
-    frameCnt : 0,
-    sentCnt  : -1,
-    frameInfo : [],
-    enemyInfo : [],
-    delay : 3,
-    isHost : false,
+var mkmk = mkmk || {};
+
+mkmk.FrameByFrameSyncManager = function() {
+    this.frameCnt = 0;
+    this.sentCnt  = -1;
+    this.frameInfo = [];
+    this.enemyInfo = [];
+    this.delay = 3;
+    this.isHost = false;
+}; 
+
+mkmk.FrameByFrameSyncManager.prototype = {
     
     deleteOldData : function(synCnt){
         
@@ -28,4 +33,4 @@ var global = {
         
         return data;
     }
-}
+};

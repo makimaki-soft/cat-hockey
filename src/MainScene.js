@@ -187,7 +187,7 @@ var MainLayer = cc.LayerColor.extend({
         
         if(synCnt < 0){
             // delay分は無視　todo:予めマイナスのフレームデータを入れておくという手もある。その場合はこのif文は不要。
-            global.frameCnt++;
+            global.incrementFrameCnt();
             return;
         }
         
@@ -227,7 +227,7 @@ var MainLayer = cc.LayerColor.extend({
         this.updatePuck(dt);
         
         // frame update success.
-        global.frameCnt++;
+        global.incrementFrameCnt();
     },
     
     /**

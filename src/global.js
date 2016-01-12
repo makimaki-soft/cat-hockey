@@ -62,7 +62,7 @@ mkmk.frameByFrameSyncManager = function() {
             
             var currFrameInfo = {
                 frameCnt : frameCnt,
-                userData : data
+                userData : frameData
             };
             
             frameInfo.push(currFrameInfo);

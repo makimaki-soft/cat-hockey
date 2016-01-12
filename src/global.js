@@ -50,10 +50,11 @@ mkmk.frameByFrameSyncManager = function() {
         
         /**
          * Push frame data into local FIFO & send over RTC connection.
+         * This function should be called every frame.
          * @param {Objct}
-         * @return {boolean}
+         * @returns {boolean}
          */
-        pushFrameData : function(data){
+        pushFrameData : function(frameData){
             
             if( frameCnt != sentCnt + 1 ){
                 return false;

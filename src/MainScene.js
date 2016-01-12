@@ -60,7 +60,7 @@ var MainLayer = cc.LayerColor.extend({
         this.enemyMallet = enemyMallet;
         
         // start processig received rtc data.
-        rtc_manager.setReceiveAction(this.rtcReceivedAction);
+        mkmk.frameByFrameSyncManager.startReceiveFrame();
         
         // start frame processig.
         this.scheduleUpdate();
@@ -189,53 +189,35 @@ var MainLayer = cc.LayerColor.extend({
             // delay分は無視　todo:予めマイナスのフレームデータを入れておくという手もある。その場合はこのif文は不要。
             mkmk.frameByFrameSyncManager.incrementFrameCnt();
             return;
-        }
-        
-        // check the available data.
-        mkmk.frameByFrameSyncManager.deleteOldData(synCnt);
-        if( mkmk.frameByFrameSyncManager.frameInfo.length == 0 || mkmk.frameByFrameSyncManager.enemyInfo.length == 0 ){
-            cc.log("FrameInfo empty.");
-            return;
-        }
-        
+        } 
+       
         // get current my data.
-        var data = mkmk.frameByFrameSyncManager.getData(mkmk.frameByFrameSyncManager.frameInfo, synCnt);
+        var data = mkmk.frameByFrameSyncManager.getMyFrameData(synCnt);
         if( data === undefined ){
             cc.log("MyData Sync lost.");
             return;
         }
         
         // get current enemy data.
-        var enemyData = mkmk.frameByFrameSyncManager.getData(mkmk.frameByFrameSyncManager.enemyInfo, synCnt);
+        var enemyData = mkmk.frameByFrameSyncManager.getEnemyFrameData(synCnt);
         if( enemyData === undefined ){
             cc.log("EnemyData Sync lost.");
             return;
         }
         
-        // found pair of sync frames.
-        cc.log("Sync ", synCnt, "MyCnt ", data.frameCnt, "EnemyCnt ", enemyData.frameCnt);
-        
         // adjust my mallet position.
-        this.moveMyMallet( cc.p(  data.userData.x,
-                                  data.userData.y ));
+        this.moveMyMallet( cc.p(  data.x,
+                                  data.y ));
                                 
         // adjust enemy's mallet position.
-        this.moveEnemyMallet( cc.p(  enemyData.userData.x,
-                                     enemyData.userData.y ));
+        this.moveEnemyMallet( cc.p(  enemyData.x,
+                                     enemyData.y ));
         
         // determine the puck postision.       
         this.updatePuck(dt);
         
         // frame update success.
         mkmk.frameByFrameSyncManager.incrementFrameCnt();
-    },
-    
-    /**
-     * 
-     */
-    rtcReceivedAction : function(peerID, data){
-        // decode JSON and add to info array.
-        mkmk.frameByFrameSyncManager.enemyInfo.push(JSON.parse(data));
     }
 });
 

@@ -34,7 +34,7 @@ var MainLayer = cc.LayerColor.extend({
         // show my mallet.
         var mallet = new cc.Sprite( res.Mallet );
         mallet.attr({
-            x: global.isHost ? size.width * 2 / 6 : size.width * 4 / 6,
+            x: mkmk.frameByFrameSyncManager.isHost ? size.width * 2 / 6 : size.width * 4 / 6,
             y: size.height / 2,
             scaleX : 100/mallet.width,
             scaleY : 100/mallet.height,
@@ -48,7 +48,7 @@ var MainLayer = cc.LayerColor.extend({
         // show enemy mallet.
         var enemyMallet = new cc.Sprite( res.Mallet );
         enemyMallet.attr({
-            x: global.isHost ? size.width * 4 / 6 : size.width * 2 / 6,
+            x: mkmk.frameByFrameSyncManager.isHost ? size.width * 4 / 6 : size.width * 2 / 6,
             y: size.height / 2,
             scaleX : 100/enemyMallet.width,
             scaleY : 100/enemyMallet.height,
@@ -183,30 +183,30 @@ var MainLayer = cc.LayerColor.extend({
     update : function(dt){
          
         // determine the sync-target frame count.
-        var synCnt = global.frameCnt - global.delay;
+        var synCnt = mkmk.frameByFrameSyncManager.frameCnt - mkmk.frameByFrameSyncManager.delay;
         
         if(synCnt < 0){
             // delay分は無視　todo:予めマイナスのフレームデータを入れておくという手もある。その場合はこのif文は不要。
-            global.incrementFrameCnt();
+            mkmk.frameByFrameSyncManager.incrementFrameCnt();
             return;
         }
         
         // check the available data.
-        global.deleteOldData(synCnt);
-        if( global.frameInfo.length == 0 || global.enemyInfo.length == 0 ){
+        mkmk.frameByFrameSyncManager.deleteOldData(synCnt);
+        if( mkmk.frameByFrameSyncManager.frameInfo.length == 0 || mkmk.frameByFrameSyncManager.enemyInfo.length == 0 ){
             cc.log("FrameInfo empty.");
             return;
         }
         
         // get current my data.
-        var data = global.getData(global.frameInfo, synCnt);
+        var data = mkmk.frameByFrameSyncManager.getData(mkmk.frameByFrameSyncManager.frameInfo, synCnt);
         if( data === undefined ){
             cc.log("MyData Sync lost.");
             return;
         }
         
         // get current enemy data.
-        var enemyData = global.getData(global.enemyInfo, synCnt);
+        var enemyData = mkmk.frameByFrameSyncManager.getData(mkmk.frameByFrameSyncManager.enemyInfo, synCnt);
         if( enemyData === undefined ){
             cc.log("EnemyData Sync lost.");
             return;
@@ -227,7 +227,7 @@ var MainLayer = cc.LayerColor.extend({
         this.updatePuck(dt);
         
         // frame update success.
-        global.incrementFrameCnt();
+        mkmk.frameByFrameSyncManager.incrementFrameCnt();
     },
     
     /**
@@ -235,7 +235,7 @@ var MainLayer = cc.LayerColor.extend({
      */
     rtcReceivedAction : function(peerID, data){
         // decode JSON and add to info array.
-        global.enemyInfo.push(JSON.parse(data));
+        mkmk.frameByFrameSyncManager.enemyInfo.push(JSON.parse(data));
     }
 });
 
@@ -270,12 +270,12 @@ var MainScene = cc.Scene.extend({
             self.addChild(virtualLayer,1);
         };
         
-       if( global.isHost ){
+       if( mkmk.frameByFrameSyncManager.isHost ){
            rtc_manager.setConnectAction(function(){
                startGame();
            });
        }else{
-           rtc_manager.connecting(global.hostPeerID, function(){
+           rtc_manager.connecting(mkmk.frameByFrameSyncManager.hostPeerID, function(){
                startGame();
            });
        }

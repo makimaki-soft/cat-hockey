@@ -12,7 +12,7 @@ var VirtualLayer = cc.LayerColor.extend({
         // virtual mallet
         var mallet = new cc.Sprite( res.Mallet );
         mallet.attr({
-            x: global.isHost ? winSize.width * 2 / 6 : winSize.width * 4 / 6,
+            x: mkmk.frameByFrameSyncManager.isHost ? winSize.width * 2 / 6 : winSize.width * 4 / 6,
             y: winSize.height / 2,
             scaleX : 100/mallet.width,
             scaleY : 100/mallet.height,
@@ -26,7 +26,7 @@ var VirtualLayer = cc.LayerColor.extend({
         // set clip window
         this.clipWindow = (function(){
             
-            var offsetX = global.isHost ? 0 : winSize.width  / 2;
+            var offsetX = mkmk.frameByFrameSyncManager.isHost ? 0 : winSize.width  / 2;
             var r = mallet.r;
         
             return {
@@ -85,9 +85,9 @@ var VirtualLayer = cc.LayerColor.extend({
      * processing per frame.
      */
     update : function(){
-        var cnt = global.frameCnt;
+        var cnt = mkmk.frameByFrameSyncManager.frameCnt;
         
-        if( cnt != global.sentCnt + 1 ){
+        if( cnt != mkmk.frameByFrameSyncManager.sentCnt + 1 ){
             return;
         }
         
@@ -99,8 +99,8 @@ var VirtualLayer = cc.LayerColor.extend({
             }
         };
         
-        global.frameInfo.push(frameInfo);
+        mkmk.frameByFrameSyncManager.frameInfo.push(frameInfo);
         rtc_manager.send(JSON.stringify(frameInfo));
-        global.sentCnt = cnt;
+        mkmk.frameByFrameSyncManager.sentCnt = cnt;
     }
 });

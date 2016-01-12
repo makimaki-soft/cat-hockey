@@ -1,4 +1,3 @@
-var global = new mkmk.FrameByFrameSyncManager();
 var EnterLayer = cc.LayerColor.extend({
     sprite:null,
     ctor:function () {
@@ -69,8 +68,8 @@ var EnterLayer = cc.LayerColor.extend({
             return;
         }
         
-        global.isHost = isHost;
-        global.hostPeerID = peerID;
+        mkmk.frameByFrameSyncManager.isHost = isHost;
+        mkmk.frameByFrameSyncManager.hostPeerID = peerID;
         cc.director.pushScene(new MainScene());
         cc.director.setNextScene();
     }

@@ -183,7 +183,7 @@ var MainLayer = cc.LayerColor.extend({
     update : function(dt){
          
         // determine the sync-target frame count.
-        var synCnt = mkmk.frameByFrameSyncManager.frameCnt - mkmk.frameByFrameSyncManager.delay;
+        var synCnt = mkmk.frameByFrameSyncManager.getSyncCnt();
         
         if(synCnt < 0){
             // delay分は無視　todo:予めマイナスのフレームデータを入れておくという手もある。その場合はこのif文は不要。

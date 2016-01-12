@@ -70,6 +70,14 @@ mkmk.frameByFrameSyncManager = function() {
             sentCnt = frameCnt;
             
             return true;
+        },
+        
+        /**
+         * return frame count of sync target.
+         * @returns {number}
+         */
+        getSyncCnt : function(){
+            return  frameCnt - delay;
         }
     };
 }();

@@ -85,22 +85,12 @@ var VirtualLayer = cc.LayerColor.extend({
      * processing per frame.
      */
     update : function(){
-        var cnt = mkmk.frameByFrameSyncManager.frameCnt;
         
-        if( cnt != mkmk.frameByFrameSyncManager.sentCnt + 1 ){
-            return;
-        }
-        
-        var frameInfo = {
-            frameCnt : cnt,
-            malltLoc : {
-                x : this.mallet.getPositionX(),
-                y : this.mallet.getPositionY()
-            }
+        var malltLoc = {
+            x : this.mallet.getPositionX(),
+            y : this.mallet.getPositionY()
         };
         
-        mkmk.frameByFrameSyncManager.frameInfo.push(frameInfo);
-        rtc_manager.send(JSON.stringify(frameInfo));
-        mkmk.frameByFrameSyncManager.sentCnt = cnt;
+        mkmk.frameByFrameSyncManager.pushFrameData(malltLoc);
     }
 });

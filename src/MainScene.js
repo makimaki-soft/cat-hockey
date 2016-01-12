@@ -216,12 +216,12 @@ var MainLayer = cc.LayerColor.extend({
         cc.log("Sync ", synCnt, "MyCnt ", data.frameCnt, "EnemyCnt ", enemyData.frameCnt);
         
         // adjust my mallet position.
-        this.moveMyMallet( cc.p(  data.malltLoc.x,
-                                  data.malltLoc.y ));
+        this.moveMyMallet( cc.p(  data.userData.x,
+                                  data.userData.y ));
                                 
         // adjust enemy's mallet position.
-        this.moveEnemyMallet( cc.p(  enemyData.malltLoc.x,
-                                     enemyData.malltLoc.y ));
+        this.moveEnemyMallet( cc.p(  enemyData.userData.x,
+                                     enemyData.userData.y ));
         
         // determine the puck postision.       
         this.updatePuck(dt);

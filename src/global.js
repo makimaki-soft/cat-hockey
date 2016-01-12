@@ -46,6 +46,29 @@ mkmk.frameByFrameSyncManager = function() {
             }
             
             return data;
+        },
+        
+        /**
+         * Push frame data into local FIFO & send over RTC connection.
+         * @param {Objct}
+         * @return {boolean}
+         */
+        pushFrameData : function(data){
+            
+            if( frameCnt != sentCnt + 1 ){
+                return false;
+            }
+            
+            var currFrameInfo = {
+                frameCnt : frameCnt,
+                userData : data
+            };
+            
+            frameInfo.push(currFrameInfo);
+            rtc_manager.send(JSON.stringify(currFrameInfo));
+            sentCnt = frameCnt;
+            
+            return true;
         }
     };
 }();

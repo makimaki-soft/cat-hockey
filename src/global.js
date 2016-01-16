@@ -5,6 +5,9 @@ mkmk.frameByFrameSyncManager = function() {
     var sentCnt  = -1;
     var frameInfo = [];
     var enemyInfo = [];
+    var verboseInfo = [];
+    var verboseMode = true;
+    var verboseMaxLength = 10;
     var delay = 3;
     var isHost = false;
     
@@ -19,9 +22,17 @@ mkmk.frameByFrameSyncManager = function() {
         var data = this.filter(function(v){ 
             return v.frameCnt == synCnt; 
         });
-                    
-        if( data[0] === undefined && this.verboseData ){
-            // todo : verbose mode
+        
+        if( data[0] === undefined && verboseMode ){
+            for(var i in this) {
+                var verbose = this[i].verboseData;
+                data = verbose.filter(function(v){ 
+                    return v.frameCnt == synCnt; 
+                });
+                if(data[0]){
+                    return data[0];
+                }
+            }
         }
         
         return data[0];
@@ -45,6 +56,26 @@ mkmk.frameByFrameSyncManager = function() {
         return currInfo.userData; 
     };
     
+    var processVerboseData = function(data){
+        
+        if( !verboseMode ){
+            return data;
+        }
+        
+        var sendingData = {
+            frameCnt : data.frameCnt,
+            userData : data.userData,
+            verboseData : verboseInfo.slice() // deep copy
+        };
+       
+        verboseInfo.push(data);
+        if( verboseInfo.length > verboseMaxLength ){
+            verboseInfo.shift();
+        }
+        
+        return sendingData;
+    };
+     
     return {
     
         get isHost  ()      { return isHost;  },
@@ -106,7 +137,9 @@ mkmk.frameByFrameSyncManager = function() {
             };
             
             frameInfo.push(currFrameInfo);
-            rtc_manager.send(JSON.stringify(currFrameInfo));
+            
+            var verbose = processVerboseData(currFrameInfo);
+            rtc_manager.send(JSON.stringify(verbose));
             sentCnt = frameCnt;
             
             return true;

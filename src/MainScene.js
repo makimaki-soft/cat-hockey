@@ -11,6 +11,15 @@ var MainLayer = cc.LayerColor.extend({
         peerID_txt.y = size.height / 2 + 200;
         this.addChild(peerID_txt, 5);
         
+        var bg = new cc.Sprite( res.Background );
+        bg.attr({
+            scaleX : size.width/bg.width,
+            scaleY : size.height/bg.height,
+            anchorX : 0,
+            anchorY : 0
+        });
+        this.addChild(bg, 1);
+        
         // show puck.
         var puck = new cc.Sprite( res.Puck );
      
@@ -23,7 +32,7 @@ var MainLayer = cc.LayerColor.extend({
             y: size.height / 2,
             scaleX : pucksize.width/puck.width,
             scaleY : pucksize.height/puck.height,
-            speed : {x : 20, y :20 },
+            speed : {x : 10, y :10 },
             anchorX : 0.5,
             anchorY : 0.5,
             r : pucksize.r
@@ -97,26 +106,36 @@ var MainLayer = cc.LayerColor.extend({
         
         var winSize = cc.winSize;
         var r = puck.r;
+        var hit = false;
         
         if( puck.y + r > winSize.height ){
             // top
             puck.speed.y = - puck.speed.y;
             puck.y = winSize.height - r;
+            hit = true;
         }else if( puck.y - r < 0 ){
             // bottom
             puck.speed.y = -puck.speed.y;
             puck.y = r;
+            hit = true;
         }
         
         if( puck.x + r > winSize.width ){
             // right
             puck.speed.x = -puck.speed.x;
             puck.x = winSize.width - r;
+            hit = true;
         }else if( puck.x - r < 0 ){
             // left
             puck.speed.x = -puck.speed.x;
             puck.x = r;
+            hit = true;
         }
+        
+        if( hit ){
+            cc.audioEngine.playEffect(res.Voice);
+        }
+        
     },
     
     /**
@@ -132,6 +151,8 @@ var MainLayer = cc.LayerColor.extend({
         if( distance > dist ){
             return;
         }
+        
+        cc.audioEngine.playEffect(res.Voice);
         
         // pack and mallet mustn't be overlap.
         var dX = puck.getPosition().x - mallet.getPosition().x;
@@ -247,8 +268,8 @@ var MainScene = cc.Scene.extend({
             cc.log("Start game");
             var virtualLayer = new VirtualLayer();
             var mainLayer    = new MainLayer();
-            self.removeChild(waitLayer);
             self.addChild(mainLayer   ,0);
+            self.removeChild(waitLayer);
             self.addChild(virtualLayer,1);
         };
         

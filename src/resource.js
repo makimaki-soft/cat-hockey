@@ -1,7 +1,9 @@
 var res = {
     Puck    : "res/arrowsign_red.png",
-    Mallet  : "res/arrowsign_red.png",
-    Grey    : "res/grey.png"
+    Mallet  : "res/mullet.png",
+    Grey    : "res/grey.png",
+    Background : "res/yuka1.png",
+    Voice : "res/catvoice.wav"
 };
 
 var g_resources = [];

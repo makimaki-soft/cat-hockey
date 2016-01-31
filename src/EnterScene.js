@@ -13,6 +13,15 @@ var EnterLayer = cc.LayerColor.extend({
             self.addChild(peerID_txt, 5);
         }, close_callback_handler);
         
+        var bg = new cc.Sprite( res.Background );
+        bg.attr({
+            scaleX : winSize.width/bg.width,
+            scaleY : winSize.height/bg.height,
+            anchorX : 0,
+            anchorY : 0
+        });
+        this.addChild(bg, 0);
+        
         // peerID input form.
         var background = new cc.Scale9Sprite(res.Grey);
         var inputForm = new cc.EditBox(new cc.Size(400,70), background);
